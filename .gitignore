@@ -1,0 +1,17 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Environment
+.env
+
+# Pipeline intermediates (output.final.json is the test input)
+SEO.json
+output.json
+output.normalized.json
+output.failed.json
