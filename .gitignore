@@ -6,3 +6,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Pipeline intermediates (output.final.json is the test input)
+SEO.json
+output.json
+output.normalized.json
+output.failed.json

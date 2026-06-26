@@ -4,15 +4,28 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test --project=chromium"
+    "test": "playwright test tests/metadata-output.spec.ts --project=chromium",
+    "test:metadata": "playwright test tests/metadata-output.spec.ts --project=chromium",
+    "test:seo-technical": "playwright test tests/seo-technical-output.spec.ts --project=chromium",
+    "test:metadata:failed": "playwright test tests/metadata-output.spec.ts --project=chromium; node --experimental-strip-types extract-failures.ts",
+    "extract:failures": "node --experimental-strip-types extract-failures.ts",
+    "test:redirect": "playwright test tests/redirect-output.spec.ts --project=chromium",
+    "test:routing": "playwright test tests/url-routing.spec.ts --project=chromium",
+    "report": "playwright show-report",
+    "resolve:final": "API_BASE_URL=http://localhost:8080/api/v1 APP_BASE_URL=http://localhost:3000 node --experimental-strip-types generate-test-paths.ts && API_BASE_URL=http://localhost:8080/api/v1 APP_BASE_URL=http://localhost:3000 node --experimental-strip-types resolve-output-slots.ts",
+    "generate:paths": "API_BASE_URL=http://localhost:8080/api/v1 APP_BASE_URL=http://localhost:3000 node --experimental-strip-types generate-test-paths.ts",
+    "generate:api": "curl -fsSL http://localhost:8000/docs/api.json -o openapi.json && orval -i openapi.json -o src/api/orval.ts --client fetch --mode single"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
+    "cheerio": "^1.2.0",
+    "csv-parse": "^6.2.1",
+    "orval": "^8.12.3",
     "typescript": "^6.0.3"
   }
 }

@@ -1,6 +1,5 @@
-/// <reference types="node" />
-
-const { defineConfig, devices } = require("@playwright/test");
+import os from "node:os";
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Read environment variables from file.
@@ -15,24 +14,34 @@ const { defineConfig, devices } = require("@playwright/test");
  */
 const isCI = !!process.env.CI;
 
-module.exports = defineConfig({
+export default defineConfig({
   testDir: "./tests",
-  /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: isCI,
-  /* Retry on CI only */
-  retries: isCI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
+  retries: 0,
+  workers: 2,
+  timeout: isCI ? 60_000 : 90_000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  reporter: [
+    ["html"],
+    ["json", { outputFile: "test-results/results.json" }],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: "http://localhost:3000",
+    /* Navigation uses absolute URLs via tests/support/navigation.ts (APP_BASE_URL). */
+    /* baseURL is intentionally unset so trace/reporter show full URLs in "Navigate to …". */
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+    browserName: "chromium",
+    channel: "chrome",
+    // headless: true,
+    navigationTimeout: isCI ? 20_000 : 60_000,
+    actionTimeout: isCI ? 10_000 : 15_000,
+    launchOptions: {
+      args: ["--disable-dev-shm-usage"],
+    },
   },
 
   /* Configure projects for major browsers */
