@@ -15,6 +15,7 @@ import {
   type NormalizedFields,
   type OutputEntry,
 } from "./support/load-output-json.js";
+import { resolveFullUrl } from "./support/navigation.js";
 import { expect, test } from "./fixtures.js";
 
 type MatchStatus = "matched" | "failed";
@@ -201,7 +202,7 @@ function logCompareResults(url: string, results: CompareResult[]): void {
 
 const SOURCE_FILE = "output.final.json";
 const entries = loadOutputJson<OutputEntry>(SOURCE_FILE).filter((entry) =>
-  Boolean(entry.fullpath),
+  Boolean(entry.path),
 );
 
 entries.forEach((entry, index) => {
@@ -209,14 +210,13 @@ entries.forEach((entry, index) => {
     page,
     rakitaListing,
   }, testInfo) => {
-    const testUrl = entry.fullpath;
+    const pageUrl = entry.path!;
+    const testUrl = resolveFullUrl(pageUrl);
     await rakitaListing.open(testUrl);
     const openedUrl = page.url();
     console.log(`🔗  Opened: ${openedUrl}`);
 
     const actual = await rakitaListing.readSeoMetadata();
-
-    const pageUrl = entry.path ?? entry.fullpath;
     const expectedFields = entryToExpectedFields(entry);
     if (expectedFields.h1 && !isRakitaLandingTopPage(pageUrl)) {
       expect(actual.h1, "Listing H1 must be present").not.toBe("");

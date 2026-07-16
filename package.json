@@ -14,7 +14,8 @@
     "report": "playwright show-report",
     "resolve:final": "node --env-file=.env --experimental-strip-types generate-test-paths.ts && node --env-file=.env --experimental-strip-types resolve-output-slots.ts",
     "generate:paths": "node --env-file=.env --experimental-strip-types generate-test-paths.ts",
-    "generate:api": "curl -fsSL http://localhost:8000/docs/api.json -o openapi.json && orval -i openapi.json -o src/api/orval.ts --client fetch --mode single"
+    "verify:failures:api": "node --env-file=.env --experimental-strip-types verify-failed-urls-api.ts",
+    "generate:api":"curl -fsSL http://localhost:8000/docs/api.json -o openapi.json && orval -i openapi.json -o src/api/orval.ts --client fetch --mode single"
   },
   "keywords": [],
   "author": "",

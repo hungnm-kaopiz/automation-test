@@ -6,6 +6,10 @@
     },
     "servers": [
         {
+            "url": "https:\/\/api.dfkms.dev.kaopiz.com\/api\/v1",
+            "description": "Development"
+        },
+        {
             "url": "http:\/\/localhost:8000\/api\/v1",
             "description": "Local"
         }
@@ -590,6 +594,67 @@
                         "$ref": "#\/components\/responses\/ValidationException"
                     }
                 }
+            }
+        },
+        "\/customer\/facilities\/{uuid}\/preview": {
+            "get": {
+                "operationId": "v1.customer.facilities.preview",
+                "tags": [
+                    "Facility"
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expires",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "signature",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FacilityPreviewResource`",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#\/components\/schemas\/FacilityPreviewResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#\/components\/responses\/AuthorizationException"
+                    }
+                },
+                "security": []
             }
         },
         "\/customer\/facilities\/{facilityActive}": {
@@ -2012,10 +2077,14 @@
                 ],
                 "parameters": [
                     {
-                        "name": "page",
+                        "name": "cursor",
                         "in": "query",
                         "schema": {
-                            "type": "integer"
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 500
                         }
                     },
                     {
@@ -2023,25 +2092,8 @@
                         "in": "query",
                         "schema": {
                             "type": "integer",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "order",
-                        "in": "query",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "with",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 200
+                            "minimum": 1,
+                            "maximum": 3000
                         }
                     }
                 ],
@@ -2097,47 +2149,6 @@
                                         "meta": {
                                             "type": "object",
                                             "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
                                                 "path": {
                                                     "type": [
                                                         "string",
@@ -2150,29 +2161,26 @@
                                                     "description": "Number of items shown per page.",
                                                     "minimum": 0
                                                 },
-                                                "to": {
+                                                "next_cursor": {
                                                     "type": [
-                                                        "integer",
+                                                        "string",
                                                         "null"
                                                     ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
+                                                    "description": "The \"cursor\" that points to the next set of items."
                                                 },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "The \"cursor\" that points to the previous set of items."
                                                 }
                                             },
                                             "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
                                                 "path",
                                                 "per_page",
-                                                "to",
-                                                "total"
+                                                "next_cursor",
+                                                "prev_cursor"
                                             ]
                                         }
                                     },
@@ -3221,76 +3229,6 @@
             }
         },
         "\/customer\/facilities\/favorites": {
-            "get": {
-                "operationId": "v1.customer.facilities.favorites.index",
-                "tags": [
-                    "Favorite"
-                ],
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    },
-                    {
-                        "name": "order",
-                        "in": "query",
-                        "schema": {
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "with",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 200
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `FavoriteResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/FavoriteResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
-                    }
-                }
-            },
             "post": {
                 "operationId": "v1.customer.facilities.favorites.store",
                 "tags": [
@@ -3335,6 +3273,83 @@
                     },
                     "401": {
                         "$ref": "#\/components\/responses\/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#\/components\/responses\/ValidationException"
+                    }
+                }
+            },
+            "get": {
+                "operationId": "v1.customer.facilities.favorites.index",
+                "tags": [
+                    "Favorite"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "with",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 200
+                        }
+                    },
+                    {
+                        "name": "facilities_ids[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `FavoriteResource`",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#\/components\/schemas\/FavoriteResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "422": {
                         "$ref": "#\/components\/responses\/ValidationException"
@@ -5115,13 +5130,65 @@
                     "id": {
                         "type": "integer"
                     },
-                    "updated_at": {
+                    "ts": {
+                        "type": "string"
+                    },
+                    "p_id": {
+                        "type": "integer"
+                    },
+                    "m_id": {
+                        "type": "integer"
+                    },
+                    "mp_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "dcs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "tg_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "stns": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "rl_id": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "rl_id"
+                            ]
+                        }
+                    },
+                    "ua": {
                         "type": "string"
                     }
                 },
                 "required": [
                     "id",
-                    "updated_at"
+                    "ts",
+                    "p_id",
+                    "m_id",
+                    "mp_id",
+                    "dcs",
+                    "tg_ids",
+                    "stns",
+                    "ua"
                 ],
                 "title": "FacilityIdResource"
             },
@@ -5195,6 +5262,22 @@
                 ],
                 "title": "FacilityMediaResource"
             },
+            "FacilityPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "draft_data": {
+                        "$ref": "#\/components\/schemas\/FacilityResource"
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "draft_data",
+                    "expires_at"
+                ],
+                "title": "FacilityPreviewResource"
+            },
             "FacilityResource": {
                 "type": "object",
                 "properties": {
@@ -5262,6 +5345,28 @@
                             "null"
                         ]
                     },
+                    "uuid": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "is_current": {
+                        "type": "boolean"
+                    },
+                    "is_published": {
+                        "type": "boolean"
+                    },
+                    "is_canonical": {
+                        "type": "boolean"
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
                     "created_at": {
                         "type": [
                             "string",
@@ -5275,6 +5380,24 @@
                             "null"
                         ],
                         "format": "date-time"
+                    },
+                    "publisher_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "publisher_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "published_composite_key": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "is_favorite": {
                         "type": "boolean"
@@ -5554,8 +5677,16 @@
                     "display_stopped_reason",
                     "wam_display_stopped",
                     "wam_display_stopped_memo",
+                    "uuid",
+                    "is_current",
+                    "is_published",
+                    "is_canonical",
+                    "published_at",
                     "created_at",
                     "updated_at",
+                    "publisher_type",
+                    "publisher_id",
+                    "published_composite_key",
                     "is_favorite",
                     "facility_detail",
                     "corporation",
@@ -8253,6 +8384,25 @@
             },
             "ModelNotFoundException": {
                 "description": "Not found",
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthorizationException": {
+                "description": "Authorization error",
                 "content": {
                     "application\/json": {
                         "schema": {

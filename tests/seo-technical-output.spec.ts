@@ -5,6 +5,7 @@ import {
   loadOutputJson,
   type OutputEntry,
 } from "./support/load-output-json.js";
+import { resolveFullUrl } from "./support/navigation.js";
 import {
   compareTechnicalSeo,
   logTechnicalResults,
@@ -13,7 +14,7 @@ import { expect, test } from "./fixtures.js";
 
 const SOURCE_FILE = "output.final.json";
 const entries = loadOutputJson<OutputEntry>(SOURCE_FILE).filter((entry) =>
-  Boolean(entry.fullpath),
+  Boolean(entry.path),
 );
 
 entries.forEach((entry, index) => {
@@ -21,12 +22,12 @@ entries.forEach((entry, index) => {
     rakitaListing,
     page,
   }, testInfo) => {
-    const testUrl = entry.fullpath;
+    const entryPath = entry.path!;
+    const testUrl = resolveFullUrl(entryPath);
     await rakitaListing.open(testUrl);
     const openedUrl = page.url();
     console.log(`🔗  Opened: ${openedUrl}`);
 
-    const entryPath = entry.path ?? entry.fullpath;
     await rakitaListing.waitForTechnicalSeo(entryPath);
 
     const seo = await rakitaListing.readSeoMetadata();
